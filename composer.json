@@ -1,0 +1,22 @@
+{
+    "name": "hairrescuer/account-book",
+    "description": "",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Kuang Jiaye",
+            "email": "kuangjy@qq.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": "^7.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "HairRescuer\\AccountBook\\": "src/",
+            "HairRescuer\\AccountBook\\Test\\": "tests/"
+        }
+    }
+}
