@@ -18,5 +18,8 @@
             "HairRescuer\\AccountBook\\": "src/",
             "HairRescuer\\AccountBook\\Test\\": "tests/"
         }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^7"
     }
 }

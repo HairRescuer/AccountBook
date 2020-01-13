@@ -12,6 +12,7 @@ class Account
 
     public function __construct($accountId, DataAccessInterface $dataAccess)
     {
+        $this->accountId = $accountId;
         $this->dataAccess = $dataAccess;
     }
 
@@ -20,34 +21,54 @@ class Account
         return $this->accountId;
     }
 
-    public function income(float $amount, $extraData = [])
+    public function income(int $amount, $extraData = []): Transaction
     {
-        $this->dataAccess->createTransaction($this->accountId, $amount, $extraData);
+        $this->dataAccess->beginDBTransaction();
+        try {
+            $transaction = $this->dataAccess->createTransaction($this->accountId, $amount, null, $extraData);
+            $this->dataAccess->updateBalance($this->accountId, $amount);
+            $this->dataAccess->commitDBTransaction();
+            return $transaction;
+        } catch (\Exception $e) {
+            $this->dataAccess->rollbackDBTransaction();
+            throw $e;
+        }
     }
 
-    public function expense(float $amount, $extraData = [])
+    public function expense(int $amount, $extraData = [])
     {
-        $this->dataAccess->createTransaction($this->accountId, -($amount), $extraData);
+        return $this->income(-($amount), $extraData);
     }
 
-    public function transfer(Account $oppositeAccount, float $amount, $extraData = [])
+    public function transfer(Account $oppositeAccount, int $amount, $extraData = []): Transaction
     {
-        $this->expense($amount, $extraData);
-        $oppositeAccount->income($amount, $extraData);
+        $this->dataAccess->beginDBTransaction();
+        try {
+            $transaction = $this->dataAccess->createTransaction($this->accountId, $amount, $oppositeAccount->getAccountId(), $extraData);
+            $this->dataAccess->updateBalance($this->accountId, $amount);
+            $oppositeTransaction = $this->dataAccess->createTransaction($oppositeAccount->getAccountId(), $amount, $this->accountId, $extraData);
+            $this->dataAccess->updateBalance($oppositeAccount->getAccountId(), -($amount));
+            $this->dataAccess->commitDBTransaction();
+            return $transaction;
+        } catch (\Exception $e) {
+            $this->dataAccess->rollbackDBTransaction();
+            throw $e;
+        }
     }
 
-    public function revert($transactionId, $extraData = [])
+    public function getTransaction($transactionId): Transaction
     {
-
+        return $this->dataAccess->findTransaction($transactionId, $this->accountId);
     }
 
     public function getBalance()
     {
-        $this->dataAccess->getBalance($this->accountId);
+        return $this->dataAccess->getBalance($this->accountId);
     }
 
     public function calculateBalance()
     {
-        $this->dataAccess->calculateBalance($this->accountId);
+        return $this->dataAccess->calculateBalance($this->accountId);
     }
+
 }

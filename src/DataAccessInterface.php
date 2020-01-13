@@ -6,19 +6,21 @@ namespace HairRescuer\AccountBook;
 
 interface DataAccessInterface
 {
-    public function updateBalance($accountId);
+    public function updateBalance($accountId, int $v, bool $overwrite = false): bool;
 
-    public function calculateBalance($accountId);
+    public function calculateBalance($accountId): int;
 
-    public function getBalance($accountId);
+    public function getBalance($accountId): int;
 
-    public function createTransaction($accountId, $amount, $extraData = []);
+    public function createAccount($extraData = []): Account;
 
-    public function createAccount($extraData = []);
+    public function findAccountByConditions(array $conditions): Account;
 
-    public function findAccount($extraData = []);
+    public function findAccountById($accountId): Account;
 
-    public function isAccountExisted($accountId);
+    public function createTransaction($accountId, $oppositeAccountId, int $amount, $extraData = []): Transaction;
+
+    public function findTransaction($transactionId, $accountId = null): Transaction;
 
     public function isDBTransactionSupported(): bool;
 

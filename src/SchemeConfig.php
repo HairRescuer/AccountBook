@@ -9,10 +9,12 @@ class SchemeConfig
     public $accountScheme = 'account';
     public $transactionScheme = 'transaction';
 
-    public $amountAttribute = 'amount';
+    public $accountIdAttribute = 'id';
+    public $transactionAmountAttribute = 'amount';
     public $relatedAccountAttribute = 'account_id';
-    public $oppositeTransactionAttribute = 'opposite_transaction_id';
+    public $oppositeAccountAttribute = 'opposite_account_id';
     public $dateAttribute = 'created_at';
 
+    public $transactionIdAttribute = 'id';
     public $accountBalanceAttribute = 'balance';
 }

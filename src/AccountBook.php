@@ -4,8 +4,6 @@
 namespace HairRescuer\AccountBook;
 
 
-use HairRescuer\AccountBook\Exceptions\AccountNotFoundException;
-
 class AccountBook
 {
     protected $dataAccess;
@@ -17,22 +15,21 @@ class AccountBook
 
     public function createAccount($extraData = []): Account
     {
-        $accountId = $this->dataAccess->createAccount($extraData);
-        return $this->getAccountById($accountId);
+        return $this->dataAccess->createAccount($extraData);
     }
 
-    public function getAccountByCondition($conditions = []): Account
+    public function getAccountByConditions($conditions = []): Account
     {
-        $accountId = $this->dataAccess->findAccount($conditions);
-        return $this->getAccountById($accountId);
+        return $this->dataAccess->findAccountByConditions($conditions);
     }
 
     public function getAccountById($accountId): Account
     {
-        $isAccountExisted = $this->dataAccess->isAccountExisted($accountId);
-        if (!$isAccountExisted) {
-            throw new AccountNotFoundException();
-        }
-        return new Account($accountId, $this->dataAccess);
+        return $this->dataAccess->findAccountById($accountId);
+    }
+
+    public function getTransaction($transactionId): Transaction
+    {
+        return $this->dataAccess->findTransaction($transactionId, null);
     }
 }
