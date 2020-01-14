@@ -29,10 +29,10 @@ class Transaction
     {
         $this->dataAccess->beginDBTransaction();
         try {
-            $transaction = $this->dataAccess->createTransaction($this->accountId, -($this->amount), empty($this->oppositeAccountId) ? null : $this->oppositeAccountId, $extraData);
+            $transaction = $this->dataAccess->createTransaction($this->accountId, empty($this->oppositeAccountId) ? null : $this->oppositeAccountId, -($this->amount), $extraData);
             $this->dataAccess->updateBalance($this->accountId, -($this->amount));
             if (!empty($this->oppositeAccountId)) {
-                $oppositeTransaction = $this->dataAccess->createTransaction($this->oppositeAccountId, $this->amount, $this->accountId, $extraData);
+                $oppositeTransaction = $this->dataAccess->createTransaction($this->oppositeAccountId, $this->accountId, $this->amount, $extraData);
                 $this->dataAccess->updateBalance($this->oppositeAccountId, $this->amount);
             }
             $this->dataAccess->commitDBTransaction();

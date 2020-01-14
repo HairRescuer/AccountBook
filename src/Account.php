@@ -25,7 +25,7 @@ class Account
     {
         $this->dataAccess->beginDBTransaction();
         try {
-            $transaction = $this->dataAccess->createTransaction($this->accountId, $amount, null, $extraData);
+            $transaction = $this->dataAccess->createTransaction($this->accountId, null, $amount, $extraData);
             $this->dataAccess->updateBalance($this->accountId, $amount);
             $this->dataAccess->commitDBTransaction();
             return $transaction;
@@ -44,10 +44,10 @@ class Account
     {
         $this->dataAccess->beginDBTransaction();
         try {
-            $transaction = $this->dataAccess->createTransaction($this->accountId, $amount, $oppositeAccount->getAccountId(), $extraData);
-            $this->dataAccess->updateBalance($this->accountId, $amount);
-            $oppositeTransaction = $this->dataAccess->createTransaction($oppositeAccount->getAccountId(), $amount, $this->accountId, $extraData);
-            $this->dataAccess->updateBalance($oppositeAccount->getAccountId(), -($amount));
+            $transaction = $this->dataAccess->createTransaction($this->accountId, $oppositeAccount->getAccountId(), -($amount), $extraData);
+            $this->dataAccess->updateBalance($this->accountId, -($amount));
+            $oppositeTransaction = $this->dataAccess->createTransaction($oppositeAccount->getAccountId(), $this->accountId, $amount, $extraData);
+            $this->dataAccess->updateBalance($oppositeAccount->getAccountId(), $amount);
             $this->dataAccess->commitDBTransaction();
             return $transaction;
         } catch (\Exception $e) {

@@ -20,7 +20,6 @@ class PDOTest extends TestCase
     {
         self::$pdo = new \PDO('mysql:host=127.0.0.1;dbname=accountbook', 'root', '123456');
         self::$dao = new DataAccess(self::$pdo, new SchemeConfig());
-
         self::$userId = random_int(1000, 9999);
     }
 
@@ -87,22 +86,22 @@ class PDOTest extends TestCase
      */
     public function testTransactionAndCalculateBalance(Account $account1, Account $account2)
     {
-        $transaction1 = self::$dao->createTransaction($account1->getAccountId(), null, 10);
+        $transaction1 = self::$dao->createTransaction($account1->getAccountId(), null, 15);
         $this->assertNotEmpty($transaction1);
         $calculateBalance1 = $account1->calculateBalance();
-        $this->assertEquals(10, $calculateBalance1);
+        $this->assertEquals(15, $calculateBalance1);
         $this->assertEquals($account1->getBalance(), $calculateBalance1);
 
-        $transaction2 = self::$dao->createTransaction($account1->getAccountId(), $account2->getAccountId(), -10);
+        $transaction2 = self::$dao->createTransaction($account1->getAccountId(), $account2->getAccountId(), -8);
         $this->assertNotEmpty($transaction2);
-        $transaction3 = self::$dao->createTransaction($account2->getAccountId(), $account1->getAccountId(), 10);
+        $transaction3 = self::$dao->createTransaction($account2->getAccountId(), $account1->getAccountId(), 8);
         $this->assertNotEmpty($transaction3);
-        $this->assertEquals(0, $account1->calculateBalance());
-        $this->assertEquals(10, $account2->calculateBalance());
+        $this->assertEquals(7, $account1->calculateBalance());
+        $this->assertEquals(8, $account2->calculateBalance());
 
-        $transaction4 = self::$dao->createTransaction($account2->getAccountId(), null, -10, ['attach' => 'test' . strval(self::$userId)]);
+        $transaction4 = self::$dao->createTransaction($account2->getAccountId(), null, -7, ['attach' => 'test' . strval(self::$userId)]);
         $this->assertNotEmpty($transaction4);
-        $this->assertEquals(0, $account2->calculateBalance());
+        $this->assertEquals(1, $account2->calculateBalance());
 
         $transactionCopy2 = self::$dao->findTransaction($transaction2->getTransactionId(), $account1->getAccountId());
         $transactionCopy3 = self::$dao->findTransaction($transaction3->getTransactionId());
