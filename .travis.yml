@@ -12,7 +12,7 @@ before_install:
 install:
   - composer install -n --dev --prefer-source
   - cp phpunit.xml.dist phpunit.xml
-  - mysql -uroot -p accountbook < tests/data.sql
+  - mysql -uroot accountbook < tests/data.sql
 
 script:
   - vendor/bin/phpcs --standard=PSR2 src
