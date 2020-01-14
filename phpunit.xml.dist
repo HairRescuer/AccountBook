@@ -18,6 +18,9 @@
             <directory>./src/</directory>
         </whitelist>
     </filter>
+    <logging>
+        <log type="coverage-text" target="php://stdout"/>
+    </logging>
     <php>
         <env name="dbname" value="accountbook"/>
         <env name="dbuser" value="root"/>
