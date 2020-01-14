@@ -18,7 +18,7 @@ class PDOTest extends TestCase
 
     public static function setUpBeforeClass()
     {
-        self::$pdo = new \PDO('mysql:host=127.0.0.1;dbname=accountbook', 'root', '123456');
+        self::$pdo = new \PDO("mysql:host=127.0.0.1;dbname={$_ENV['dbname']}", $_ENV['dbuser'], $_ENV['dbpassword']);
         self::$dao = new DataAccess(self::$pdo, new SchemeConfig());
         self::$userId = random_int(1000, 9999);
     }

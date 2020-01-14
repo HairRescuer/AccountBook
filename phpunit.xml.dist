@@ -7,8 +7,7 @@
          convertNoticesToExceptions="true"
          convertWarningsToExceptions="true"
          processIsolation="false"
-         stopOnFailure="false"
-         syntaxCheck="false">
+         stopOnFailure="false">
     <testsuites>
         <testsuite name="AccountBook Test Suite">
             <directory>./tests/</directory>
@@ -16,7 +15,12 @@
     </testsuites>
     <filter>
         <whitelist>
-            <directory>./src</directory>
+            <directory>./src/</directory>
         </whitelist>
     </filter>
+    <php>
+        <env name="dbname" value="accountbook"/>
+        <env name="dbuser" value="root"/>
+        <env name="dbpassword" value=""/>
+    </php>
 </phpunit>

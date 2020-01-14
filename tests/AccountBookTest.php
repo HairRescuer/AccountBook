@@ -15,7 +15,7 @@ class AccountBookTest extends TestCase
 
     public function testPDO()
     {
-        $pdo = new \PDO('mysql:host=127.0.0.1;dbname=accountbook', 'root', '123456');
+        $pdo = new \PDO("mysql:host=127.0.0.1;dbname={$_ENV['dbname']}", $_ENV['dbuser'], $_ENV['dbpassword']);
         $dao = new DataAccess($pdo, new SchemeConfig());
         AccountBook::setDataAccess($dao);
         $userId = random_int(1000, 9999);

@@ -1,8 +1,6 @@
 <?php
 
-
 namespace HairRescuer\AccountBook;
-
 
 class Account
 {
@@ -44,9 +42,19 @@ class Account
     {
         $this->dataAccess->beginDBTransaction();
         try {
-            $transaction = $this->dataAccess->createTransaction($this->accountId, $oppositeAccount->getAccountId(), -($amount), $extraData);
+            $transaction = $this->dataAccess->createTransaction(
+                $this->accountId,
+                $oppositeAccount->getAccountId(),
+                -($amount),
+                $extraData
+            );
             $this->dataAccess->updateBalance($this->accountId, -($amount));
-            $oppositeTransaction = $this->dataAccess->createTransaction($oppositeAccount->getAccountId(), $this->accountId, $amount, $extraData);
+            $oppositeTransaction = $this->dataAccess->createTransaction(
+                $oppositeAccount->getAccountId(),
+                $this->accountId,
+                $amount,
+                $extraData
+            );
             $this->dataAccess->updateBalance($oppositeAccount->getAccountId(), $amount);
             $this->dataAccess->commitDBTransaction();
             return $transaction;
@@ -70,5 +78,4 @@ class Account
     {
         return $this->dataAccess->calculateBalance($this->accountId);
     }
-
 }

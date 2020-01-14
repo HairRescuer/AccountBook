@@ -1,8 +1,6 @@
 <?php
 
-
 namespace HairRescuer\AccountBook\Implementation\PDO;
-
 
 use HairRescuer\AccountBook\Account;
 use HairRescuer\AccountBook\DataAccessInterface;
@@ -30,10 +28,14 @@ class DataAccess implements DataAccessInterface
 
     public function updateBalance($accountId, int $v, bool $overwrite = false): bool
     {
+        $sc = $this->schemeConfig;
         if ($overwrite) {
-            $sql = "UPDATE {$this->schemeConfig->accountScheme} SET `{$this->schemeConfig->accountBalanceAttribute}` = :v WHERE {$this->schemeConfig->accountIdAttribute} = :accountId";
+            $sql = "UPDATE {$sc->accountScheme} SET `{$sc->accountBalanceAttribute}` = :v "
+                . "WHERE {$sc->accountIdAttribute} = :accountId";
         } else {
-            $sql = "UPDATE {$this->schemeConfig->accountScheme} SET `{$this->schemeConfig->accountBalanceAttribute}` = `{$this->schemeConfig->accountBalanceAttribute}` + :v WHERE {$this->schemeConfig->accountIdAttribute} = :accountId";
+            $sql = "UPDATE {$sc->accountScheme} SET "
+                . "`{$sc->accountBalanceAttribute}` = `{$sc->accountBalanceAttribute}` + :v "
+                . "WHERE {$sc->accountIdAttribute} = :accountId";
         }
         $ps = $this->pdoInstance->prepare($sql);
         $ps->bindValue(':v', $v, \PDO::PARAM_INT);
@@ -43,7 +45,9 @@ class DataAccess implements DataAccessInterface
 
     public function calculateBalance($accountId): int
     {
-        $sql = "SELECT SUM(`{$this->schemeConfig->transactionAmountAttribute}`) FROM `{$this->schemeConfig->transactionScheme}` WHERE `{$this->schemeConfig->relatedAccountAttribute}` = '{$accountId}'";
+        $sc = $this->schemeConfig;
+        $sql = "SELECT SUM(`{$sc->transactionAmountAttribute}`) FROM `{$sc->transactionScheme}` "
+            . "WHERE `{$sc->relatedAccountAttribute}` = '{$accountId}'";
         $ps = $this->pdoInstance->query($sql);
         $balance = intval($ps->fetchColumn());
         $this->updateBalance($accountId, $balance, true);
@@ -52,19 +56,24 @@ class DataAccess implements DataAccessInterface
 
     public function getBalance($accountId): int
     {
-        $sql = "SELECT * FROM {$this->schemeConfig->accountScheme} WHERE {$this->schemeConfig->accountIdAttribute} = '{$accountId}' LIMIT 1";
+        $sc = $this->schemeConfig;
+        $sql = "SELECT * FROM {$sc->accountScheme} "
+            . "WHERE {$sc->accountIdAttribute} = '{$accountId}' LIMIT 1";
         $ps = $this->pdoInstance->query($sql);
         $account = empty($ps) ? null : $ps->fetch();
-        return (empty($account) || empty($account[$this->schemeConfig->accountBalanceAttribute])) ? 0 : intval($account[$this->schemeConfig->accountBalanceAttribute]);
+        return (empty($account) || empty($account[$sc->accountBalanceAttribute])) ?
+            0 : intval($account[$sc->accountBalanceAttribute]);
     }
 
     public function createAccount($extraData = []): Account
     {
+        $sc = $this->schemeConfig;
         $data = [
             'balance' => 0
         ];
         $data = array_merge($data, $extraData);
-        $sql = "INSERT INTO `{$this->schemeConfig->accountScheme}` ({$this->implodeColumnNames(array_keys($data))}) VALUES ({$this->implodeColumnBindNames(array_keys($data))})";
+        $sql = "INSERT INTO `{$sc->accountScheme}` ({$this->implodeColumnNames(array_keys($data))}) "
+            . "VALUES ({$this->implodeColumnBindNames(array_keys($data))})";
         $ps = $this->pdoInstance->prepare($sql);
         foreach ($data as $k => $v) {
             $ps->bindValue(':' . $k, $v);
@@ -76,6 +85,7 @@ class DataAccess implements DataAccessInterface
 
     public function findAccountByConditions(array $conditions): Account
     {
+        $sc = $this->schemeConfig;
         if (empty($conditions)) {
             throw new AccountNotFoundException();
         }
@@ -84,13 +94,13 @@ class DataAccess implements DataAccessInterface
             $conditionArray[] = " `$k` = '$v' ";
         }
         $conditionString = implode('AND', $conditionArray);
-        $sql = "SELECT * FROM {$this->schemeConfig->accountScheme} WHERE {$conditionString} LIMIT 1";
+        $sql = "SELECT * FROM {$sc->accountScheme} WHERE {$conditionString} LIMIT 1";
         $ps = $this->pdoInstance->query($sql);
         $account = empty($ps) ? null : $ps->fetch();
         if (empty($account)) {
             throw new AccountNotFoundException();
         }
-        return new Account($account[$this->schemeConfig->accountIdAttribute], $this);
+        return new Account($account[$sc->accountIdAttribute], $this);
     }
 
     public function findAccountById($accountId): Account
@@ -100,16 +110,18 @@ class DataAccess implements DataAccessInterface
 
     public function createTransaction($accountId, $oppositeAccountId, int $amount, $extraData = []): Transaction
     {
+        $sc = $this->schemeConfig;
         $data = [
-            $this->schemeConfig->relatedAccountAttribute => $accountId,
-            $this->schemeConfig->transactionAmountAttribute => $amount,
-            $this->schemeConfig->dateAttribute => time()
+            $sc->relatedAccountAttribute => $accountId,
+            $sc->transactionAmountAttribute => $amount,
+            $sc->dateAttribute => time()
         ];
         if (!empty($oppositeAccountId)) {
-            $data[$this->schemeConfig->oppositeAccountAttribute] = $oppositeAccountId;
+            $data[$sc->oppositeAccountAttribute] = $oppositeAccountId;
         }
         $data = array_merge($data, $extraData);
-        $sql = "INSERT INTO `{$this->schemeConfig->transactionScheme}` ({$this->implodeColumnNames(array_keys($data))}) VALUES ({$this->implodeColumnBindNames(array_keys($data))})";
+        $sql = "INSERT INTO `{$sc->transactionScheme}` ({$this->implodeColumnNames(array_keys($data))}) "
+            . "VALUES ({$this->implodeColumnBindNames(array_keys($data))})";
         $ps = $this->pdoInstance->prepare($sql);
         foreach ($data as $k => $v) {
             $ps->bindValue(':' . $k, $v);
@@ -121,14 +133,15 @@ class DataAccess implements DataAccessInterface
 
     public function findTransaction($transactionId, $accountId = null): Transaction
     {
+        $sc = $this->schemeConfig;
         if (empty($transactionId)) {
             throw new TransactionNotFoundException();
         }
-        $conditionString = "`{$this->schemeConfig->transactionIdAttribute}` = :transactionId";
+        $conditionString = "`{$sc->transactionIdAttribute}` = :transactionId";
         if (!empty($accountId)) {
-            $conditionString .= " AND `{$this->schemeConfig->relatedAccountAttribute}` = :accountId";
+            $conditionString .= " AND `{$sc->relatedAccountAttribute}` = :accountId";
         }
-        $sql = "SELECT * FROM `{$this->schemeConfig->transactionScheme}` WHERE {$conditionString} LIMIT 1";
+        $sql = "SELECT * FROM `{$sc->transactionScheme}` WHERE {$conditionString} LIMIT 1";
         $ps = $this->pdoInstance->prepare($sql);
         $ps->bindValue(':transactionId', $transactionId);
         if (!empty($accountId)) {
@@ -140,11 +153,11 @@ class DataAccess implements DataAccessInterface
             throw new TransactionNotFoundException();
         }
         return new Transaction(
-            $transaction[$this->schemeConfig->transactionIdAttribute],
-            $transaction[$this->schemeConfig->relatedAccountAttribute],
-            $transaction[$this->schemeConfig->oppositeAccountAttribute],
-            $transaction[$this->schemeConfig->transactionAmountAttribute],
-            $transaction[$this->schemeConfig->dateAttribute],
+            $transaction[$sc->transactionIdAttribute],
+            $transaction[$sc->relatedAccountAttribute],
+            $transaction[$sc->oppositeAccountAttribute],
+            $transaction[$sc->transactionAmountAttribute],
+            $transaction[$sc->dateAttribute],
             $this
         );
     }
