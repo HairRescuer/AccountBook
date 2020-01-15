@@ -19,7 +19,7 @@ class Account
         return $this->accountId;
     }
 
-    public function income(int $amount, $extraData = []): Transaction
+    public function income(int $amount, array $extraData = []): Transaction
     {
         $this->dataAccess->beginDBTransaction();
         try {
@@ -33,12 +33,12 @@ class Account
         }
     }
 
-    public function expense(int $amount, $extraData = [])
+    public function expense(int $amount, array $extraData = [])
     {
         return $this->income(-($amount), $extraData);
     }
 
-    public function transfer(Account $oppositeAccount, int $amount, $extraData = []): Transaction
+    public function transfer(Account $oppositeAccount, int $amount, array $extraData = []): array
     {
         $this->dataAccess->beginDBTransaction();
         try {
@@ -57,7 +57,7 @@ class Account
             );
             $this->dataAccess->updateBalance($oppositeAccount->getAccountId(), $amount);
             $this->dataAccess->commitDBTransaction();
-            return $transaction;
+            return [$transaction, $oppositeTransaction];
         } catch (\Exception $e) {
             $this->dataAccess->rollbackDBTransaction();
             throw $e;

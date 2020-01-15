@@ -10,13 +10,13 @@ interface DataAccessInterface
 
     public function getBalance($accountId): int;
 
-    public function createAccount($extraData = []): Account;
+    public function createAccount(array $extraData = []): Account;
 
     public function findAccountByConditions(array $conditions): Account;
 
     public function findAccountById($accountId): Account;
 
-    public function createTransaction($accountId, $oppositeAccountId, int $amount, $extraData = []): Transaction;
+    public function createTransaction($accountId, $oppositeAccountId, int $amount, array $extraData = []): Transaction;
 
     public function findTransaction($transactionId, $accountId = null): Transaction;
 

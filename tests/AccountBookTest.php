@@ -33,25 +33,25 @@ class AccountBookTest extends TestCase
         $transaction1 = $account1->income(23);
         $this->assertNotEmpty($transaction1);
         $this->assertEquals(23, $account1->getBalance());
-        $transaction2 = $account1->transfer($account2, 14, ['attach' => 'test transfer']);
+        list($transaction2, $transaction3) = $account1->transfer($account2, 14, ['attach' => 'test transfer']);
         $this->assertNotEmpty($transaction2);
         $this->assertEquals(9, $account1->getBalance());
         $this->assertEquals(14, $account2->getBalance());
-        $transaction3 = $account2->expense(6, ['attach' => 'test expense']);
+        $transaction4 = $account2->expense(6, ['attach' => 'test expense']);
         $this->assertNotEmpty($transaction2);
         $this->assertEquals(8, $account2->getBalance());
 
 
-        $transactionCopy3 = AccountBook::getTransaction($transaction3->getTransactionId());
-        $this->assertEquals($transaction3, $transactionCopy3);
+        $transactionCopy4 = AccountBook::getTransaction($transaction4->getTransactionId());
+        $this->assertEquals($transaction4, $transactionCopy4);
 
-        $transaction4 = $transaction2->revert(['attach' => 'revert transfer']);
-        $this->assertNotNull($transaction4);
+        $transaction5 = $transaction2->revert(['attach' => 'revert transfer']);
+        $this->assertNotNull($transaction5);
         $this->assertEquals(23, $account1->getBalance());
         $this->assertEquals(-6, $account2->getBalance());
 
-        $transactionCopy4 = $account1->getTransaction($transaction4->getTransactionId());
-        $this->assertNotNull($transactionCopy4);
-        $this->assertEquals($transaction2->getOppositeAccountId(), $transaction4->getOppositeAccountId());
+        $transactionCopy5 = $account1->getTransaction($transaction5->getTransactionId());
+        $this->assertNotNull($transactionCopy5);
+        $this->assertEquals($transaction2->getOppositeAccountId(), $transaction5->getOppositeAccountId());
     }
 }

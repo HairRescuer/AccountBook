@@ -11,7 +11,7 @@ before_install:
   - cp phpunit.xml.dist phpunit.xml
 
 install:
-  - composer install -n --dev --prefer-source
+  - composer install -n --prefer-source
   - mysql -uroot accountbook < tests/data.sql
 
 script:

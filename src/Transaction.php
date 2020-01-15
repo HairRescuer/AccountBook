@@ -29,7 +29,8 @@ class Transaction
         $this->date = $date;
     }
 
-    public function revert($extraData = [])
+
+    public function revert(array $extraData = []): Transaction
     {
         $this->dataAccess->beginDBTransaction();
         try {
@@ -77,7 +78,7 @@ class Transaction
         return $this->amount;
     }
 
-    public function getDate($format = null)
+    public function getDate(string $format = '')
     {
         if (empty($format)) {
             return $this->date;

@@ -65,7 +65,7 @@ class DataAccess implements DataAccessInterface
             0 : intval($account[$sc->accountBalanceAttribute]);
     }
 
-    public function createAccount($extraData = []): Account
+    public function createAccount(array $extraData = []): Account
     {
         $sc = $this->schemeConfig;
         $data = [
@@ -108,7 +108,7 @@ class DataAccess implements DataAccessInterface
         return $this->findAccountByConditions([$this->schemeConfig->accountIdAttribute => $accountId]);
     }
 
-    public function createTransaction($accountId, $oppositeAccountId, int $amount, $extraData = []): Transaction
+    public function createTransaction($accountId, $oppositeAccountId, int $amount, array $extraData = []): Transaction
     {
         $sc = $this->schemeConfig;
         $data = [

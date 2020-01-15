@@ -11,12 +11,12 @@ class AccountBook
         self::$dataAccess = $dataAccess;
     }
 
-    public static function createAccount($extraData = []): Account
+    public static function createAccount(array $extraData = []): Account
     {
         return self::$dataAccess->createAccount($extraData);
     }
 
-    public static function getAccountByConditions($conditions = []): Account
+    public static function getAccountByConditions(array $conditions = []): Account
     {
         return self::$dataAccess->findAccountByConditions($conditions);
     }
