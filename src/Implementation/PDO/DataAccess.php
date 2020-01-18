@@ -45,25 +45,16 @@ class DataAccess implements DataAccessInterface
     public function recalculateBalance($accountId = null): bool
     {
         $sc = $this->schemeConfig;
-        $sqlSub1 = "SELECT SUM(`{$sc->transactionAmountAttribute}`) FROM `{$sc->transactionScheme}` WHERE "
+        $sqlSub1 = "SELECT COALESCE(SUM(`{$sc->transactionAmountAttribute}`),0) FROM `{$sc->transactionScheme}` WHERE "
             . "`{$sc->transactionScheme}`.`{$sc->relatedAccountAttribute}` = "
             . "`{$sc->accountScheme}`.`{$sc->accountIdAttribute}`";
-        $sqlSub2 = "SELECT DISTINCT `account_id` FROM `{$sc->transactionScheme}`";
-        $sql1 = "UPDATE `{$sc->accountScheme}` SET `{$sc->accountBalanceAttribute}` = 0";
-        $sql2 = "UPDATE `{$sc->accountScheme}` SET `{$sc->accountBalanceAttribute}` = ({$sqlSub1})";
-        if (empty($accountId)) {
-            $sql1 .= " WHERE `{$sc->accountScheme}`.`{$sc->accountIdAttribute}` IN ({$sqlSub2})";
-            $sql2 .= " WHERE `{$sc->accountScheme}`.`{$sc->accountIdAttribute}` IN ({$sqlSub2})";
-
-        } else {
-            $sql1 .= " WHERE `{$sc->accountScheme}`.`{$sc->accountIdAttribute}` = '{$accountId}'";
-            $sql2 .= " WHERE `{$sc->accountScheme}`.`{$sc->accountIdAttribute}` = '{$accountId}'";
+        $sql = "UPDATE `{$sc->accountScheme}` SET `{$sc->accountBalanceAttribute}` = ({$sqlSub1})";
+        if (!empty($accountId)) {
+            $sql .= " WHERE `{$sc->accountScheme}`.`{$sc->accountIdAttribute}` = '{$accountId}'";
         }
+        $result = $this->pdoInstance->exec($sql);
 
-        $result1 = $this->pdoInstance->exec($sql1);
-        $result2 = $this->pdoInstance->exec($sql2);
-
-        return (bool)($result1 + $result2);
+        return (bool)$result;
     }
 
     public function getBalance($accountId): int
