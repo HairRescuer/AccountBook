@@ -2,6 +2,6 @@
 
 namespace HairRescuer\AccountBook\Exceptions;
 
-class AccountNotFoundException extends \Exception
+class DBErrorException extends \Exception
 {
 }

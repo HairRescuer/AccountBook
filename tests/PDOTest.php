@@ -1,8 +1,6 @@
 <?php
 
-
 namespace HairRescuer\AccountBook\Tests;
-
 
 use Exception;
 use HairRescuer\AccountBook\Account;
@@ -19,6 +17,7 @@ class PDOTest extends TestCase
     public static function setUpBeforeClass()
     {
         self::$pdo = new \PDO("mysql:host=127.0.0.1;dbname={$_ENV['dbname']}", $_ENV['dbuser'], $_ENV['dbpassword']);
+//        self::$pdo = new \PDO("sqlite:" . __DIR__ . "/data.db");
         self::$dao = new DataAccess(self::$pdo, new SchemeConfig());
         self::$userId = random_int(1000, 9999);
     }
@@ -60,23 +59,6 @@ class PDOTest extends TestCase
     }
 
     /**
-     * @depends testCreateAccountWithExtraData
-     *
-     * @param Account $account
-     * @throws Exception
-     */
-    public function testUpdateBalance(Account $account)
-    {
-        //balance
-        $this->assertTrue(self::$dao->updateBalance($account->getAccountId(), 10));
-        $this->assertEquals(10, self::$dao->getBalance($account->getAccountId()));
-        $this->assertTrue(self::$dao->updateBalance($account->getAccountId(), -20));
-        $this->assertEquals(-10, self::$dao->getBalance($account->getAccountId()));
-        $this->assertTrue(self::$dao->updateBalance($account->getAccountId(), 0, true));
-        $this->assertEquals(0, self::$dao->getBalance($account->getAccountId()));
-    }
-
-    /**
      * @depends testCreateAccount
      * @depends testCreateAccountWithExtraData
      *
@@ -84,29 +66,47 @@ class PDOTest extends TestCase
      * @param Account $account2
      * @throws Exception
      */
-    public function testTransactionAndCalculateBalance(Account $account1, Account $account2)
+    public function testTransaction(Account $account1, Account $account2)
     {
         $transaction1 = self::$dao->createTransaction($account1->getAccountId(), null, 15);
         $this->assertNotEmpty($transaction1);
-        $calculateBalance1 = $account1->calculateBalance();
-        $this->assertEquals(15, $calculateBalance1);
-        $this->assertEquals($account1->getBalance(), $calculateBalance1);
-
         $transaction2 = self::$dao->createTransaction($account1->getAccountId(), $account2->getAccountId(), -8);
         $this->assertNotEmpty($transaction2);
         $transaction3 = self::$dao->createTransaction($account2->getAccountId(), $account1->getAccountId(), 8);
         $this->assertNotEmpty($transaction3);
-        $this->assertEquals(7, $account1->calculateBalance());
-        $this->assertEquals(8, $account2->calculateBalance());
-
         $transaction4 = self::$dao->createTransaction($account2->getAccountId(), null, -7, ['attach' => 'test' . strval(self::$userId)]);
         $this->assertNotEmpty($transaction4);
-        $this->assertEquals(1, $account2->calculateBalance());
 
         $transactionCopy2 = self::$dao->findTransaction($transaction2->getTransactionId(), $account1->getAccountId());
         $transactionCopy3 = self::$dao->findTransaction($transaction3->getTransactionId());
-        $this->assertEquals($transaction2->getTransactionId(), $transactionCopy2->getTransactionId());
+        $this->assertEquals($transaction2, $transactionCopy2);
         $this->assertEquals($transactionCopy2->getAccountId(), $transactionCopy3->getOppositeAccountId());
         $this->assertEquals(-($transactionCopy2->getAmount()), $transactionCopy3->getAmount());
+    }
+
+    /**
+     * @depends testCreateAccount
+     * @depends testCreateAccountWithExtraData
+     * @depends testTransaction
+     *
+     * @param Account $account1
+     * @param Account $account2
+     * @throws Exception
+     */
+    public function testBalance(Account $account1, Account $account2)
+    {
+        //balance
+        $this->assertTrue(self::$dao->updateBalance($account2->getAccountId(), 10));
+        $this->assertEquals(10, self::$dao->getBalance($account2->getAccountId()));
+        $this->assertTrue(self::$dao->updateBalance($account2->getAccountId(), 0, true));
+        $this->assertEquals(0, self::$dao->getBalance($account2->getAccountId()));
+        $this->assertTrue(self::$dao->recalculateBalance($account2->getAccountId()));
+        $this->assertEquals(1, self::$dao->getBalance($account2->getAccountId()));
+
+        $this->assertTrue(self::$dao->updateBalance($account2->getAccountId(), -10));
+        $this->assertEquals(-9, self::$dao->getBalance($account2->getAccountId()));
+        $this->assertTrue(self::$dao->recalculateBalance());
+        $this->assertEquals(7, self::$dao->getBalance($account1->getAccountId()));
+        $this->assertEquals(1, self::$dao->getBalance($account2->getAccountId()));
     }
 }

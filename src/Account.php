@@ -74,8 +74,8 @@ class Account
         return $this->dataAccess->getBalance($this->accountId);
     }
 
-    public function calculateBalance()
+    public function recalculateBalance()
     {
-        return $this->dataAccess->calculateBalance($this->accountId);
+        return $this->dataAccess->recalculateBalance($this->accountId);
     }
 }

@@ -4,8 +4,7 @@ namespace HairRescuer\AccountBook\Implementation\PDO;
 
 use HairRescuer\AccountBook\Account;
 use HairRescuer\AccountBook\DataAccessInterface;
-use HairRescuer\AccountBook\Exceptions\AccountNotFoundException;
-use HairRescuer\AccountBook\Exceptions\TransactionNotFoundException;
+use HairRescuer\AccountBook\Exceptions\NotFoundException;
 use HairRescuer\AccountBook\SchemeConfig;
 use HairRescuer\AccountBook\Transaction;
 
@@ -43,15 +42,28 @@ class DataAccess implements DataAccessInterface
         return $ps->execute();
     }
 
-    public function calculateBalance($accountId): int
+    public function recalculateBalance($accountId = null): bool
     {
         $sc = $this->schemeConfig;
-        $sql = "SELECT SUM(`{$sc->transactionAmountAttribute}`) FROM `{$sc->transactionScheme}` "
-            . "WHERE `{$sc->relatedAccountAttribute}` = '{$accountId}'";
-        $ps = $this->pdoInstance->query($sql);
-        $balance = intval($ps->fetchColumn());
-        $this->updateBalance($accountId, $balance, true);
-        return $balance;
+        $sqlSub1 = "SELECT SUM(`{$sc->transactionAmountAttribute}`) FROM `{$sc->transactionScheme}` WHERE "
+            . "`{$sc->transactionScheme}`.`{$sc->relatedAccountAttribute}` = "
+            . "`{$sc->accountScheme}`.`{$sc->accountIdAttribute}`";
+        $sqlSub2 = "SELECT DISTINCT `account_id` FROM `{$sc->transactionScheme}`";
+        $sql1 = "UPDATE `{$sc->accountScheme}` SET `{$sc->accountBalanceAttribute}` = 0";
+        $sql2 = "UPDATE `{$sc->accountScheme}` SET `{$sc->accountBalanceAttribute}` = ({$sqlSub1})";
+        if (empty($accountId)) {
+            $sql1 .= " WHERE `{$sc->accountScheme}`.`{$sc->accountIdAttribute}` IN ({$sqlSub2})";
+            $sql2 .= " WHERE `{$sc->accountScheme}`.`{$sc->accountIdAttribute}` IN ({$sqlSub2})";
+
+        } else {
+            $sql1 .= " WHERE `{$sc->accountScheme}`.`{$sc->accountIdAttribute}` = '{$accountId}'";
+            $sql2 .= " WHERE `{$sc->accountScheme}`.`{$sc->accountIdAttribute}` = '{$accountId}'";
+        }
+
+        $result1 = $this->pdoInstance->exec($sql1);
+        $result2 = $this->pdoInstance->exec($sql2);
+
+        return (bool)($result1 + $result2);
     }
 
     public function getBalance($accountId): int
@@ -87,7 +99,7 @@ class DataAccess implements DataAccessInterface
     {
         $sc = $this->schemeConfig;
         if (empty($conditions)) {
-            throw new AccountNotFoundException();
+            throw new NotFoundException(NotFoundException::TYPE_ACCOUNT);
         }
         $conditionArray = [];
         foreach ($conditions as $k => $v) {
@@ -98,7 +110,7 @@ class DataAccess implements DataAccessInterface
         $ps = $this->pdoInstance->query($sql);
         $account = empty($ps) ? null : $ps->fetch();
         if (empty($account)) {
-            throw new AccountNotFoundException();
+            throw new NotFoundException(NotFoundException::TYPE_ACCOUNT);
         }
         return new Account($account[$sc->accountIdAttribute], $this);
     }
@@ -135,7 +147,7 @@ class DataAccess implements DataAccessInterface
     {
         $sc = $this->schemeConfig;
         if (empty($transactionId)) {
-            throw new TransactionNotFoundException();
+            throw new NotFoundException(NotFoundException::TYPE_TRANSACTION);
         }
         $conditionString = "`{$sc->transactionIdAttribute}` = :transactionId";
         if (!empty($accountId)) {
@@ -150,7 +162,7 @@ class DataAccess implements DataAccessInterface
         $ps->execute();
         $transaction = $ps->fetch();
         if (empty($transaction)) {
-            throw new TransactionNotFoundException();
+            throw new NotFoundException(NotFoundException::TYPE_TRANSACTION);
         }
         return new Transaction(
             $transaction[$sc->transactionIdAttribute],

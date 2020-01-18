@@ -1,8 +1,6 @@
 <?php
 
-
 namespace HairRescuer\AccountBook\Tests;
-
 
 use HairRescuer\AccountBook\AccountBook;
 use HairRescuer\AccountBook\Implementation\PDO\DataAccess;
@@ -11,22 +9,20 @@ use PHPUnit\Framework\TestCase;
 
 class AccountBookTest extends TestCase
 {
-
-
     public function testPDO()
     {
         $pdo = new \PDO("mysql:host=127.0.0.1;dbname={$_ENV['dbname']}", $_ENV['dbuser'], $_ENV['dbpassword']);
         $dao = new DataAccess($pdo, new SchemeConfig());
-        AccountBook::setDataAccess($dao);
+        $accountbook = new AccountBook($dao);
         $userId = random_int(1000, 9999);
 
-        $account1 = AccountBook::createAccount();
-        $account2 = AccountBook::createAccount(['user_id' => $userId, 'account_name' => 'test' . strval($userId)]);
+        $account1 = $accountbook->createAccount();
+        $account2 = $accountbook->createAccount(['user_id' => $userId, 'account_name' => 'test' . strval($userId)]);
         $this->assertNotNull($account1);
         $this->assertNotNull($account2);
 
-        $accountCopy1 = AccountBook::getAccountById($account1->getAccountId());
-        $accountCopy2 = AccountBook::getAccountByConditions(['user_id' => $userId, 'account_name' => 'test' . strval($userId)]);
+        $accountCopy1 = $accountbook->getAccountById($account1->getAccountId());
+        $accountCopy2 = $accountbook->getAccountByConditions(['user_id' => $userId, 'account_name' => 'test' . strval($userId)]);
         $this->assertEquals($account1, $accountCopy1);
         $this->assertEquals($account2, $accountCopy2);
 
@@ -42,7 +38,7 @@ class AccountBookTest extends TestCase
         $this->assertEquals(8, $account2->getBalance());
 
 
-        $transactionCopy4 = AccountBook::getTransaction($transaction4->getTransactionId());
+        $transactionCopy4 = $accountbook->getTransaction($transaction4->getTransactionId());
         $this->assertEquals($transaction4, $transactionCopy4);
 
         $transaction5 = $transaction2->revert(['attach' => 'revert transfer']);

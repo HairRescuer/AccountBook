@@ -6,7 +6,7 @@ interface DataAccessInterface
 {
     public function updateBalance($accountId, int $v, bool $overwrite = false): bool;
 
-    public function calculateBalance($accountId): int;
+    public function recalculateBalance($accountId = null): bool;
 
     public function getBalance($accountId): int;
 

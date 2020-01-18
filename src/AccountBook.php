@@ -4,30 +4,38 @@ namespace HairRescuer\AccountBook;
 
 class AccountBook
 {
-    protected static $dataAccess;
+    /**
+     * @var DataAccessInterface
+     */
+    protected $dataAccess;
 
-    public static function setDataAccess(DataAccessInterface $dataAccess)
+    public function __construct(DataAccessInterface $dataAccess)
     {
-        self::$dataAccess = $dataAccess;
+        $this->dataAccess = $dataAccess;
     }
 
-    public static function createAccount(array $extraData = []): Account
+    public function createAccount(array $extraData = []): Account
     {
-        return self::$dataAccess->createAccount($extraData);
+        return $this->dataAccess->createAccount($extraData);
     }
 
-    public static function getAccountByConditions(array $conditions = []): Account
+    public function getAccountByConditions(array $conditions = []): Account
     {
-        return self::$dataAccess->findAccountByConditions($conditions);
+        return $this->dataAccess->findAccountByConditions($conditions);
     }
 
-    public static function getAccountById($accountId): Account
+    public function getAccountById($accountId): Account
     {
-        return self::$dataAccess->findAccountById($accountId);
+        return $this->dataAccess->findAccountById($accountId);
     }
 
-    public static function getTransaction($transactionId): Transaction
+    public function getTransaction($transactionId): Transaction
     {
-        return self::$dataAccess->findTransaction($transactionId, null);
+        return $this->dataAccess->findTransaction($transactionId, null);
+    }
+
+    public function recalculateBalance(Account $account = null): bool
+    {
+        return $this->dataAccess->recalculateBalance(empty($account) ? null : $account->getAccountId());
     }
 }
